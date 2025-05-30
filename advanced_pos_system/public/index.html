@@ -361,6 +361,19 @@
             </div>
         </main>
 
+        <!-- WhatsApp Receipt Form -->
+        <section class="bg-primary border-t border-color py-6">
+            <div class="container mx-auto px-4">
+                <h2 class="text-lg font-semibold text-color mb-2">Send Receipt via WhatsApp</h2>
+                <form id="whatsappReceiptForm" class="flex flex-col md:flex-row gap-2 items-start md:items-end">
+                    <input type="text" id="whatsappTo" class="px-3 py-2 border border-color rounded-md bg-primary text-color" placeholder="Recipient WhatsApp Number (e.g. +1234567890)" required>
+                    <input type="text" id="whatsappMessage" class="px-3 py-2 border border-color rounded-md bg-primary text-color flex-1" placeholder="Receipt message" required>
+                    <button type="submit" class="btn-secondary px-4 py-2 rounded-md">Send</button>
+                </form>
+                <div id="whatsappReceiptStatus" class="mt-2 text-sm"></div>
+            </div>
+        </section>
+
         <!-- Footer -->
         <footer class="bg-primary border-t border-color py-2">
             <div class="container mx-auto px-4">
@@ -530,8 +543,40 @@
     <script src="js/app.js"></script>
     
     <script>
-        // Initialize app when document is ready
+        // WhatsApp Receipt Form Submission
         document.addEventListener('DOMContentLoaded', function() {
+            const whatsappForm = document.getElementById('whatsappReceiptForm');
+            const whatsappTo = document.getElementById('whatsappTo');
+            const whatsappMessage = document.getElementById('whatsappMessage');
+            const whatsappStatus = document.getElementById('whatsappReceiptStatus');
+            if (whatsappForm) {
+                whatsappForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    whatsappStatus.textContent = 'Sending...';
+                    whatsappStatus.className = 'mt-2 text-sm text-blue-600';
+                    try {
+                        const response = await fetch('/api/send-whatsapp-receipt', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                to: whatsappTo.value,
+                                message: whatsappMessage.value
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            whatsappStatus.textContent = 'Receipt sent successfully!';
+                            whatsappStatus.className = 'mt-2 text-sm text-green-600';
+                        } else {
+                            whatsappStatus.textContent = 'Failed to send: ' + (data.error || 'Unknown error');
+                            whatsappStatus.className = 'mt-2 text-sm text-red-600';
+                        }
+                    } catch (err) {
+                        whatsappStatus.textContent = 'Error: ' + err.message;
+                        whatsappStatus.className = 'mt-2 text-sm text-red-600';
+                    }
+                });
+            }
             // Set current date
             const currentDateElement = document.getElementById('currentDate');
             if (currentDateElement) {
